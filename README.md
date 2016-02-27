@@ -7,8 +7,11 @@ R CMD BATCH FalseTransFilter.R /path/to/annotation /path/to/transeQTLresults/ /p
 ```
 
 # Filters:
-1. Pseudogenes originate from retrotransposition and gene duplication events. Many pseudogenes are highly similar in sequence and therefore extremely difficult to map genes to. All pseudogene-trans associations are marked to allow users to choose to take them forward.
 
-2. eQTLs that are members of gene families are also marked. If gene families are all in cis, this can also create multiple spurious cis-eQTL signals in which no one 'causal' gene can be selected.
+1. Overall test for psuedogene enrichment given expression background.
 
-3. Mark *trans*-eQTLs driven by multimapping. Read coverage tests are performed. We have observed many false *trans*-eQTL signals that are driven by shared sequence homology. Whilst the QTL effect is real (differential expression due to genotype) - It should act in cis rather than trans (figure X). We utilising a sliding window of read coverage to assess uniformity. If many reads align to very few windows, the overall coverage across the gene will be poisson distributed. If the read coverage for a given trans-gene approximates a poisson, we provide diagnostic plots of each offender and also mark it for filtering by the user.
+2. Pseudogenes originate from retrotransposition and gene duplication events. Many pseudogenes are highly similar in sequence and therefore extremely difficult to map reads to correctly/uniquely. All pseudogene-trans associations are marked to allow users to choose whether they should take them forward.
+
+3. eQTLs that are members of gene families are also marked. If gene families are all in cis, this can also create multiple spurious cis-eQTL signals in which no one 'causal' gene can be selected.
+
+4. Mark phantom *cis*-eQTLs. These are *trans*-eQTLs driven by multimapping. Read coverage tests are performed. We have observed many false *trans*-eQTL signals that are driven by shared sequence homology with regions in *cis*. Whilst the QTL effect is real (differential expression due to genotype) - It should act in cis rather than trans (figure X). We utilising a sliding window of read coverage to assess uniformity. If many reads align to very few windows, the overall coverage across the gene will be non-uniformly distributed. If the read coverage for a given trans-gene isn't approximately uniform, we provide diagnostic plots of each offender and also mark it for filtering by the user.
