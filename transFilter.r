@@ -118,8 +118,15 @@ cis_window_scan <- function(gene_of_interest,gencode_genes,trans_eQTL) {
 return(trans_eQTL)
 }
 
-
 annotated_trans_eQTLS <- cis_window_scan(gene_of_interest,gencode_genes,trans_eQTL)
+
+# mpileup function - obtain reads from BAMS for all possible trans genes
+# provide diagnostic read coverage plot per dodgy gene if Perplexity score 
+
+
+# For given cis-eQTL results. Compute enrichment from the reference.
+# Annotate which SNP is REF/ALT. Are there more + effect REF eQTLs than compared to ALT + effect eQTLs.
+
 
 
 
