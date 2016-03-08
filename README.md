@@ -4,7 +4,7 @@ Many *trans*-eQTLs can be 'phantom *cis*-eQTL effects' driven by multimapping re
 We have devised a simple post eQTL analysis filter package to mark / remove eQTLs that are potentially false, or non-interpretable.
 
 ```
-python get_dosages.py /home/glastonc/FileMatrixQTL/FilesMatrixQTL/F/dosages/ /home/glastonc/new_bams/counts/eQTLs/trans.eQTLs.TMM.F.txt.sorted test.out.dosages
+python get_dosages.py dir/to/dosages/ dir/to/trans/eqtls/eQTLs.sorted output.dosages
 ```
 
 ```
