@@ -2,6 +2,11 @@
 Many *trans*-eQTLs can be 'phantom *cis*-eQTL effects' driven by multimapping reads due to gene families, paralogues and regions of high sequence similarity across the genome (figure 1). As multi-mapping is inevitable across RNA-seq experiments - These false *trans*-eQTLs are replicable across studies.
 
 We have devised a simple post eQTL analysis filter package to mark / remove eQTLs that are potentially false, or non-interpretable.
+
+```
+python get_dosages.py /home/glastonc/FileMatrixQTL/FilesMatrixQTL/F/dosages/ /home/glastonc/new_bams/counts/eQTLs/trans.eQTLs.TMM.F.txt.sorted test.out.dosages
+```
+
 ```
 R CMD BATCH FalseTransFilter.R /path/to/annotation /path/to/transeQTLresults/ /path/to/BAMs/ path/to/dosages/
 ```
