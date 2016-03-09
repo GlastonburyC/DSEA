@@ -8,15 +8,15 @@ python get_dosages.py dir/to/dosages/ dir/to/trans/eqtls/eQTLs.sorted output.dos
 ```
 
 ```
-R CMD BATCH FalseTransFilter.R /path/to/annotation /path/to/transeQTLresults/ /path/to/BAMs/ path/to/dosages/
+R CMD BATCH FalseTransFilter.R gencode.v19.annotation.gtf trans.eQTLs.txt.sorted /path/to/BAMs/ output.dosages snplocations.txt listOfQuantifiedGenes.txt
 ```
 
-# Filters:
+# Functionality:
 
 1. Overall test for psuedogene enrichment given expression background.
 
-2. Pseudogenes originate from retrotransposition and gene duplication events. Many pseudogenes are highly similar in sequence and therefore extremely difficult to map reads to correctly/uniquely. All pseudogene-trans associations are marked to allow users to choose whether they should take them forward.
+2. Mark trans-eQTLs that are pseudogenes
 
-3. eQTLs that are members of gene families are also marked. If gene families are all in cis, this can also create multiple spurious cis-eQTL signals in which no one 'causal' gene can be selected.
+3. eQTLs that are members of gene families are also marked. If gene families are all in cis, multi-gene families can also create multiple spurious cis-eQTL signals in which no one 'causal' gene can be selected.
 
-4. Mark phantom *cis*-eQTLs. These are *trans*-eQTLs driven by multimapping. Read coverage tests are performed. We have observed many false *trans*-eQTL signals that are driven by shared sequence homology with regions in *cis*. Whilst the QTL effect is real (differential expression due to genotype) - It should act in cis rather than trans (figure X). We utilise a sliding window across the gene to assess read coverage uniformity. If many reads align to very few windows, the overall coverage across the gene will be non-uniformly distributed. In addition we provide diagnostic plots of each offender and mark it for filtering by the user.
+4. Mark phantom *cis*-eQTLs. These are *trans*-eQTLs driven by multimapping. We have observed many false *trans*-eQTL signals that are driven by shared sequence homology with regions in *cis*. Whilst the QTL effect is real (differential expression due to genotype) - It should act in cis rather than trans (figure X). We automate the process of checking mean nucleotide % read coverage across all individuals in a study. If many reads align to very few basepairs, the overall coverage across the gene will be non-uniformly distributed. In addition we provide diagnostic plots of each spurious association and mark it for filtering.
