@@ -31,7 +31,7 @@ An example of this effect is the following *trans*-eQTL rs2034278-*CBWD1* (*P* =
 ![alt tag](https://raw.githubusercontent.com/GlastonburyC/FalseTransFilter/master/CBWD2.png?token=AEA_S5x_uaLXAiGYa97Xvk1hY_3UQ4Fuks5W6vIUwA%3D%3D)
 
 
-This spurious signal can be compared to a *trans*-eQTL for *NME3* that did not have a paralogue within 1MB of its associated SNP and was not found to have poor/non-uniform read coverage (below).
+This spurious signal can be compared to a *trans*-eQTL for *NME3* that did not have a paralogue within 1MB of its associated SNP and was not found to have poor/non-uniform read coverage (83% of gene > 1 read per bp) (below).
 
 
 ![alt tag](https://raw.githubusercontent.com/GlastonburyC/FalseTransFilter/master/NME.png?token=AEA_S53_l77mLA8tmlymtquCJAjbvowkks5W6vM5wA%3D%3D)
