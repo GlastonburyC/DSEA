@@ -51,8 +51,8 @@ biotype <- as.data.frame(unlist(lapply(gencode$V9,
 	                     	      "\"")[[1]][2])))
 
 gene_id <- as.data.frame(unlist(lapply(gencode$V9,
-						  function(x)strsplit(strsplit(x,";")[[1]][5],
-						  		   "\"")[[1]][2])))
+			function(x)strsplit(strsplit(x,";")[[1]][5],
+			"\"")[[1]][2])))
 
 
 colnames(biotype)[1]="biotype"
@@ -224,9 +224,9 @@ for(i in 1:nrow(annotated_trans_eQTLS)){
     dt=melt(final,id.vars="Position")
     colnames(dt)=c('Position','dosage','value')
     print(ggplot(data=dt,aes(x=Position,y=value)) + geom_line(aes(colour=dosage),alpha=0.8,size=1) + 
-    										xlab(paste(cord$gene_id,"basepair position",sep=" ")) +
-    										ylab("Per nucleotide read coverage") +
-    										ggtitle(paste(cord$gene_id,"Read coverage",sep=" ")))
+    						    xlab(paste(cord$gene_id,"basepair position",sep=" ")) +
+    						    ylab("Per nucleotide read coverage") +
+    					            ggtitle(paste(cord$gene_id,"Read coverage",sep=" ")))
 	#system(paste("cd ",dir2dosages,"; awk '$1==\"",annotated_trans_eQTLS[i,1],"\"' all.dosages.csv > ",annotated_trans_eQTLS[i,1],".txt",sep=""))
 	#SNP.file.name=paste(annotated_trans_eQTLS[i,1],".txt",sep="")
 	#SNP=read.table(SNP.file.name,head=F,sep="\t")
