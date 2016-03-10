@@ -42,4 +42,4 @@ An example of this effect is the following *trans*-eQTL rs2034278-*CBWD1* (*P* =
 This spurious signal can be compared to a *trans*-eQTL for *NME3* that did not have a paralogue within 1MB of its associated SNP and was not found to have poor/non-uniform read coverage (83% of gene > 1 read per bp) (below).
 
 
-![alt tag](https://raw.githubusercontent.com/GlastonburyC/DSEA/master/NME.png?token=AEA_S53_l77mLA8tmlymtquCJAjbvowkks5W6vM5wA%3D%3D)
+![alt tag](NME.png?raw=true)
