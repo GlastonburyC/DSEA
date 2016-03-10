@@ -24,4 +24,4 @@ R CMD BATCH FalseTransFilter.R gencode.v19.annotation.gtf trans.eQTLs.txt.sorted
 
 # Example: ZNF90
 
-![alt tag](https://raw.githubusercontent.com/GlastonburyC/FalseTransFilter/master/znf90.png)
+![alt tag](https://raw.githubusercontent.com/GlastonburyC/FalseTransFilter/master/znf90.png?token=AEA_S3t04CS3V2Oh0bv_PpGs9_jWdcBiks5W6u9bwA%3D%3D)
