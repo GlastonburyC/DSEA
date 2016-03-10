@@ -36,7 +36,7 @@ R CMD BATCH FalseTransFilter.R gencode.v19.annotation.gtf trans.eQTLs.txt.sorted
 An example of this effect is the following *trans*-eQTL rs2034278-*CBWD1* (*P* =  1.96 x 10<sup>-19</sup>) Gtex replication ( *P* = 0.0078, Subcutaneous Adipose tissue), demonstrating these spurious signals are replicable across cohorts. When scanning for paralogous genes in *cis* of rs2034278, it becomes apparent that there is 1 gene, *CBWD2*. Mean basepair coverage calculated across 720 individuals clearly demonstrates that the signal is spurious, with only 3.27% of the gene having >= 1 read per basepair, despite being expressed at 1 CPM > 90% of individuals. It is likely that this *trans*-eQTL is actually a phantom *cis*-eQTL effect on *CBWD2*, and due to their high sequence similarity (98%, ENSEMBL) the reads are erronously assigned to a region of *CBWD1*.
 
 
-![alt tag](https://github.com/GlastonburyC/DSEA/CBWD2.png)
+![Alt text](img.jpg?raw=true "Title")
 
 
 This spurious signal can be compared to a *trans*-eQTL for *NME3* that did not have a paralogue within 1MB of its associated SNP and was not found to have poor/non-uniform read coverage (83% of gene > 1 read per bp) (below).
