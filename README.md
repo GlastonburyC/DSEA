@@ -3,13 +3,13 @@ Many *trans*-eQTLs can be 'phantom *cis*-eQTL effects' driven by multimapping re
 
 We have devised a simple post eQTL analysis filter package to mark / remove eQTLs that are potentially false, or non-interpretable.
 
-```
 Extract SNPs from dosage files that have apparent eQTL effects.
+```
 python get_dosages.py dir/to/dosages/ dir/to/trans/eqtls/eQTLs.sorted output.dosages
 ```
 
-```
 Run DSEE to annotate results with paralogues, pseudogene enrichment and poor read coverage (stratified by genotype)
+```
 R CMD BATCH FalseTransFilter.R gencode.v19.annotation.gtf trans.eQTLs.txt.sorted /path/to/BAMs/ output.dosages snplocations.txt listOfQuantifiedGenes.txt
 ```
 
