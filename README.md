@@ -4,10 +4,12 @@ Many *trans*-eQTLs can be 'phantom *cis*-eQTL effects' driven by multimapping re
 We have devised a simple post eQTL analysis filter package to mark / remove eQTLs that are potentially false, or non-interpretable.
 
 ```
+Extract SNPs from dosage files that have apparent eQTL effects.
 python get_dosages.py dir/to/dosages/ dir/to/trans/eqtls/eQTLs.sorted output.dosages
 ```
 
 ```
+Run DSEE to annotate results with paralogues, pseudogene enrichment and poor read coverage (stratified by genotype)
 R CMD BATCH FalseTransFilter.R gencode.v19.annotation.gtf trans.eQTLs.txt.sorted /path/to/BAMs/ output.dosages snplocations.txt listOfQuantifiedGenes.txt
 ```
 
@@ -15,7 +17,7 @@ R CMD BATCH FalseTransFilter.R gencode.v19.annotation.gtf trans.eQTLs.txt.sorted
 
 1. Overall test for psuedogene enrichment given expression background.
 
-2. Mark trans-eQTLs that are pseudogenes
+2. Mark *trans*-eQTLs that are pseudogenes
 
 3. eQTLs that are members of gene families are also marked. If gene families are all in *cis*, multi-gene families can also create multiple spurious *cis*-eQTL signals in which no one 'causal' gene can be selected.
 
@@ -23,7 +25,7 @@ R CMD BATCH FalseTransFilter.R gencode.v19.annotation.gtf trans.eQTLs.txt.sorted
 
 # Example: *CBWD1*
 
-An example of this effect is the following *trans*-eQTL rs2034278-CBWD1 (*P* =  1.96 x 10<sup>-19</sup>) Gtex replication ( *P* = 0.0078, Subcutaneous Adipose tissue), demonstrating these spurious signals are replicable across cohorts. When scanning for paralogous genes in cis of rs2034278, it becomes apparent that there is 1 gene, *CBWD2*. Mean basepair coverage calculated across 720 individuals clearly demonstrates that the signal is spurious, with only 3.27% of the gene having >= 1 read per basepair, even though the gene is expressed at 1CPM > 90% of individuals. It is likely that this *trans*-eQTL is actually a phantom *cis*-eQTL effect on *CBWD2*, and due to their high sequence similarity (98%, ENSEMBL) the reads are erronously assigned to a region of *CBWD1*.
+An example of this effect is the following *trans*-eQTL rs2034278-CBWD1 (*P* =  1.96 x 10<sup>-19</sup>) Gtex replication ( *P* = 0.0078, Subcutaneous Adipose tissue), demonstrating these spurious signals are replicable across cohorts. When scanning for paralogous genes in *cis* of rs2034278, it becomes apparent that there is 1 gene, *CBWD2*. Mean basepair coverage calculated across 720 individuals clearly demonstrates that the signal is spurious, with only 3.27% of the gene having >= 1 read per basepair, even though the gene is expressed at 1CPM > 90% of individuals. It is likely that this *trans*-eQTL is actually a phantom *cis*-eQTL effect on *CBWD2*, and due to their high sequence similarity (98%, ENSEMBL) the reads are erronously assigned to a region of *CBWD1*.
 
 
 ![alt tag](https://raw.githubusercontent.com/GlastonburyC/FalseTransFilter/master/CBWD2.png?token=AEA_S5x_uaLXAiGYa97Xvk1hY_3UQ4Fuks5W6vIUwA%3D%3D)
