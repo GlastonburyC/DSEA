@@ -1,5 +1,5 @@
 # FalseTransFilter
-Many *trans*-eQTLs can be 'phantom *cis*-eQTL effects' driven by multimapping reads due to gene families, paralogues and regions of high sequence similarity across the genome (*CBWD1* below). As multi-mapping is inevitable across RNA-seq experiments, these false *trans*-eQTLs are replicable across studies.
+Many *trans*-eQTLs can be 'phantom *cis*-eQTL effects' driven by multimapping reads due to gene families, paralogues and regions of high sequence similarity across the genome (*CBWD1* below). As multi-mapping is inevitable across RNA-seq experiments, these false *trans*-eQTLs are replicable across studies. Even when considering only uniquely mapping reads, sequence variation at the population level or technical sequencing error can lead to reads mapping in the wrong genomic location.
 
 We have devised a simple post eQTL-analysis filter pipeline to mark / remove eQTLs that are spurious and/or non-interpretable.
 
