@@ -2,7 +2,6 @@ args <- commandArgs(trailingOnly = TRUE)
 
 library(data.table)
 library(plyr)
-library(XML)
 library(zoo)
 library(ggplot2)
 library(GenomicRanges)
