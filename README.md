@@ -25,4 +25,4 @@ R CMD BATCH FalseTransFilter.R gencode.v19.annotation.gtf trans.eQTLs.txt.sorted
 # Example: *CBWD1*
 
 An example of this effect is the following *trans*-eQTL rs2034278-CBWD1 (*P* =  1.96e-19) Gtex replication ( *P* = 0.0078). When scanning for paralogous genes in cis of rs2034278, it becomes apparent that there is 1 gene, *CBWD2*. When mean basepair coverage is calculated across 720 individuals it is also clear that the signal is spurious, with only 3.27% of the gene having >= 1 read per basepair. It is likely that this trans-eQTL is actually a cis-eQTL effect on CBWD2, and due to their high sequence similarity (98%, ENSEMBL) the reads are erronously assigned to *CBWD1*.
-![alt tag]()
+![alt tag](https://raw.githubusercontent.com/GlastonburyC/FalseTransFilter/master/CBWD2.png?token=AEA_S5x_uaLXAiGYa97Xvk1hY_3UQ4Fuks5W6vIUwA%3D%3D)
