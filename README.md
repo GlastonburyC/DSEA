@@ -1,14 +1,14 @@
 # FalseTransFilter
-Many *trans*-eQTLs can be 'phantom *cis*-eQTL effects' driven by multimapping reads due to gene families, paralogues and regions of high sequence similarity across the genome (*CBWD1* below). As multi-mapping is inevitable across RNA-seq experiments - These false *trans*-eQTLs are replicable across studies.
+Many *trans*-eQTLs can be 'phantom *cis*-eQTL effects' driven by multimapping reads due to gene families, paralogues and regions of high sequence similarity across the genome (*CBWD1* below). As multi-mapping is inevitable across RNA-seq experiments, these false *trans*-eQTLs are replicable across studies.
 
-We have devised a simple post eQTL analysis filter package to mark / remove eQTLs that are potentially false, or non-interpretable.
+We have devised a simple post eQTL-analysis filter pipeline to mark / remove eQTLs that are spurious and/or non-interpretable.
 
 Extract SNPs from dosage files that have apparent eQTL effects.
 ```
 python get_dosages.py dir/to/dosages/ dir/to/trans/eqtls/eQTLs.sorted output.dosages
 ```
 
-Run DSEE to annotate results with paralogues, pseudogene enrichment and poor read coverage (stratified by genotype)
+Run DSEA to annotate results with paralogues, pseudogene enrichment and poor read coverage (stratified by genotype)
 ```
 R CMD BATCH FalseTransFilter.R gencode.v19.annotation.gtf trans.eQTLs.txt.sorted /path/to/BAMs/ output.dosages snplocations.txt listOfQuantifiedGenes.txt
 ```
