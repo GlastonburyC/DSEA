@@ -12,6 +12,14 @@ Run DSEA to annotate results with paralogues, pseudogene enrichment and poor rea
 ```
 R CMD BATCH FalseTransFilter.R gencode.v19.annotation.gtf trans.eQTLs.txt.sorted /path/to/BAMs/ output.dosages snplocations.txt listOfQuantifiedGenes.txt
 ```
+# Required files:
+
+1. trans-eQTL results (MatrixQTL output format) - best SNP per gene.
+2. GENCODE annotation used in study (e.g. v19) - not filtered.
+3. list of ENSEMBL ids expressed in study
+4. directory to BAM alignments
+5. SNP dosages that are trans-eQTLs
+
 
 # Functionality:
 
