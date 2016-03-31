@@ -3,8 +3,9 @@
 
 import sys
 import glob
-# sys.argv[2] = dosage directory
-# sys.argv[1] = input file of trans associations
+# sys.argv[1] = dosage directory
+# sys.argv[2] = input file of trans associations
+# sys.argv[3] = output filename
 dosage_files=glob.glob(sys.argv[1]+'*.matrix.maf5')
 
 eqtls={}
