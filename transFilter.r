@@ -49,7 +49,7 @@ quantified_genes = "/home/glastonc/new_bams/counts/Adipose.genes.txt"
 ENSEMBL_paralogs = "/home/glastonc/paralog_DB.txt"
 dir2BAMs         = "/home/glastonc/new_bams/bams_with_genotypes/"
 dir2dosages      = "/home/glastonc/FileMatrixQTL/FilesMatrixQTL/F/dosages/"
-SNPlocation_file     = "/home/glastonc/FileMatrixQTL/FilesMatrixQTL/all_snps.txt"
+SNPlocation_file = "/home/glastonc/FileMatrixQTL/FilesMatrixQTL/all_snps.txt"
 ####### load in files ########
 trans_eQTL       <- fread(trans_eQTL_file,head=T,sep="\t")
 trans_eQTL       <- as.data.frame(trans_eQTL)
@@ -63,14 +63,14 @@ SNPlocations     <- as.data.frame(SNPlocations)
 ENSEMBL_paralogs <- fread(ENSEMBL_paralogs,head=T,sep="\t")
 ENSEMBL_paralogs <- as.data.frame(ENSEMBL_paralogs)
 
-dosages  		 <- read.table(SNP_file,head=F,sep="\t")
+dosages   	 <- read.table(SNP_file,head=F,sep="\t")
 
 expressed_genes  <- read.table(quantified_genes,head=T,sep="\t")
 
 
 # format gencode annotation as a GRange object - reduce to meta-exon structure.
 txdb                <- makeTxDbFromGFF("/home/glastonc/new_bams/gencode.v19.annotation.gtf"
-							           ,format="gtf")
+				      ,format="gtf")
 
 exons.list.per.gene <- exonsBy(txdb,by="gene")
 
