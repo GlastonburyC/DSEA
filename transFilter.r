@@ -12,7 +12,6 @@ annotation.file  = "/home/glastonc/new_bams/gencode.v19.annotation.gtf" # args[1
 # FDR5 significant trans
 trans_eQTL_file  = "/home/glastonc/new_bams/counts/eQTLs/trans.eQTLs.TMM.F.txt.sorted"  # args[2]
 SNP_file         = "/home/glastonc/test.out.dosages"
-BAM.dir          = " "
 quantified_genes = " "
 ENSEMBL_paralogs = "paralog_DB.txt"
 dir2BAMs         = "/home/glastonc/new_bams/"
