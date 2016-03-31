@@ -81,18 +81,19 @@ union_exons         <-mclapply(exons.list.per.gene,function(x){reduce(x)},mc.cor
 cat("1) Processing Gencode annotation file..","\n")
 
 # obtain the gene name, ensembl ID and biotype as a seperate columns in the annotation table.
-gene.split <- mclapply(gencode[,9],function(x)strsplit(x,";")[[1]][1],mc.cores=no_cores)
+gene.split <- mclapply(gencode[,9],
+	      function(x)strsplit(x,";")[[1]][1],mc.cores=no_cores)
 
-geneN   <- as.data.frame(unlist(mclapply(gene.split,
-	                     function(x)strsplit(x,"\"")[[1]][2],mc.cores=no_cores)))
+geneN      <- as.data.frame(unlist(mclapply(gene.split,
+	                function(x)strsplit(x,"\"")[[1]][2],mc.cores=no_cores)))
 
-biotype <- as.data.frame(unlist(mclapply(gencode$V9,
-	                     function(x)strsplit(strsplit(x,";")[[1]][3],
-	                     	      "\"")[[1]][2],mc.cores=no_cores)))
+biotype    <- as.data.frame(unlist(mclapply(gencode$V9,
+	                   function(x)strsplit(strsplit(x,";")[[1]][3],
+	                   "\"")[[1]][2],mc.cores=no_cores)))
 
-gene_id <- as.data.frame(unlist(mclapply(gencode$V9,
-						  function(x)strsplit(strsplit(x,";")[[1]][5],
-						  		   "\"")[[1]][2],mc.cores=no_cores)))
+gene_id    <- as.data.frame(unlist(mclapply(gencode$V9,
+			   function(x)strsplit(strsplit(x,";")[[1]][5],
+			   "\"")[[1]][2],mc.cores=no_cores)))
 
 
 colnames(biotype)[1]="biotype"
@@ -161,17 +162,18 @@ cis_window_scan <- function(gencode_genes,trans_eQTL) {
 	for(i in 1:dim(trans_eQTL)[1]){
 
 		gene_of_interest          <- substring(trans_eQTL[i,2],1,15)
-		gene_id 				  <- gencode_genes$gene_id[which(substr(gencode_genes$gene,1,15)==gene_of_interest)]
+		gene_id 		  <- gencode_genes$gene_id[which(substr(gencode_genes$gene,1,15)==gene_of_interest)]
 		para_genes                <- tryCatch(ensemblParalogs(i,gene_of_interest),
-									 error=function(e) cat('Gene has no paralogs, skipping..','\n'),silent=TRUE)
-		chr        				  <- SNPlocations[which(SNPlocations[,1]==trans_eQTL$SNP[i]),2]
-		SNPlocations_tmp		  <- subset(SNPlocations,chrm_snp==chr)
+						      error=function(e) cat('Gene has no paralogs, skipping..','\n'),
+						      silent=TRUE)
+		chr        		  <- SNPlocations[which(SNPlocations[,1]==trans_eQTL$SNP[i]),2]
+		SNPlocations_tmp          <- subset(SNPlocations,chrm_snp==chr)
 		SNP_idx                   <- which(SNPlocations_tmp[,1]==trans_eQTL[i,1])
 		SNP_pos                   <- SNPlocations_tmp[,3][SNP_idx]
 		gencode_genes_tmp         <- subset(gencode_genes,V1 ==chr)
-		cis_genes_idx    	      <- which(gencode_genes_tmp$V4 >= SNP_pos-5e6 & gencode_genes_tmp$V4 <= SNP_pos+5e6)
-		cis_genes        	      <- gencode_genes_tmp$gene[cis_genes_idx]
-		para_in_cis      	      <- cis_genes[substr(cis_genes,1,15) %in% para_genes]
+		cis_genes_idx    	  <- which(gencode_genes_tmp$V4 >= SNP_pos-5e6 & gencode_genes_tmp$V4 <= SNP_pos+5e6)
+		cis_genes        	  <- gencode_genes_tmp$gene[cis_genes_idx]
+		para_in_cis      	  <- cis_genes[substr(cis_genes,1,15) %in% para_genes]
 				if (gene_of_interest %in% substring(para_in_cis,1,15)){
 			para_in_cis=para_in_cis[-which(para_in_cis==gene_of_interest)]
 		}
@@ -203,7 +205,9 @@ for(i in 1:nrow(annotated_trans_eQTLS)){
 	cord       <- gencode_genes[which(gencode_genes[,2]==annotated_trans_eQTLS[i,2]),c(1,4,7,8)]
 	cord_form  <- paste(cord[,2],":",cord[,3],"-",cord[,4],sep="")
 	# extract reads from all BAMs from cord positions
-	cat("Extracting reads covering gene position ",cord_form," corresponding to gene: ",as.character(cord$gene_id),"\n",sep="")
+	cat("Extracting reads covering gene position ",
+	     cord_form," corresponding to gene: ", as.character(cord$gene_id),"\n",sep="")
+	
 	system(paste("module load samtools; cd ",dir2BAMs,"; samtools mpileup -r "
 		   ,cord_form," *.bam > "
 		   ,cord[1,1],".pileup.txt",sep=""))
@@ -230,8 +234,8 @@ for(i in 1:nrow(annotated_trans_eQTLS)){
 	# exon.cov      <- read.cov[my_index,]
 	exon.cov      <- read.cov[!is.na(my_exon),]
 	exon.cov$exon <- my_exon[!is.na(my_exon)]
-	exon.cov     <- exon.cov[,c(1,ncol(exon.cov),2:(ncol(exon.cov)-1))]
-    exon_member   <- exon.cov[,2]
+	exon.cov      <- exon.cov[,c(1,ncol(exon.cov),2:(ncol(exon.cov)-1))]
+        exon_member   <- exon.cov[,2]
 
 	# extract dosage for this trans-eQTL SNP
 	SNP           <- dosages[which(dosages$V1==annotated_trans_eQTLS[i,1]),2:ncol(dosages)]
@@ -239,8 +243,8 @@ for(i in 1:nrow(annotated_trans_eQTLS)){
 	# order samples and subset to individuals with genotypes
 	colnames(SNP) <- colnames(exon.cov[,3:ncol(exon.cov)])
 	# calculate the number of exon basepairs that have <= 1 read covering them.
-	bpwith1=length(which(rowMeans(exon.cov[1:nrow(exon.cov),2:ncol(exon.cov)]) <= 1))
-    gene_percent=(bpwith1/sum(width(targetGene)))*100
+	bpwith1       <- length(which(rowMeans(exon.cov[1:nrow(exon.cov),2:ncol(exon.cov)]) <= 1))
+    gene_percent      <- (bpwith1/sum(width(targetGene)))*100
     # Width of exons for percent coverage!!
     cat(paste(round(gene_percent,digits=3),"% of nucleotides from ",cord$gene_id
     	                                  ," exons have < 1 read coverage (mean)",sep=""),"\n")
@@ -270,14 +274,13 @@ for(i in 1:nrow(annotated_trans_eQTLS)){
     colnames(dt)=c('Position','exon','dosage','value')
     recs <- data.frame(xmin=start(targetGene), xmax=end(targetGene),ymin=0,ymax=(max(dt$value)+1))
 
-    print(ggplot() +
-	                geom_line(data=dt,aes(x=Position,y=value,colour=dosage,group=interaction(exon,dosage)),alpha=0.8,size=0.7) + 
-					xlab(paste(cord$gene_id,"basepair position",sep=" ")) +
-					ylab("Per nucleotide read coverage") +
-					ggtitle(paste(cord$gene_id,"Read coverage",sep=" ")) + 
-					theme_bw() + 
-					geom_rect(data=recs, aes(xmin=xmin.value, xmax=xmax.value, ymin=ymin, ymax=ymax),
-						fill='gray80', alpha=0.3))
+    print(ggplot() + geom_line(data=dt,aes(x=Position,y=value,colour=dosage,group=interaction(exon,dosage)),alpha=0.8,size=0.7) + 
+				xlab(paste(cord$gene_id,"basepair position",sep=" ")) +
+				ylab("Per nucleotide read coverage") +
+				ggtitle(paste(cord$gene_id,"Read coverage",sep=" ")) + 
+				theme_bw() + 
+				geom_rect(data=recs, aes(xmin=xmin.value, xmax=xmax.value, ymin=ymin, ymax=ymax),
+				fill='gray80', alpha=0.3))
 
 
 	#system(paste("cd ",dir2dosages,"; awk '$1==\"",annotated_trans_eQTLS[i,1],"\"' all.dosages.csv > ",annotated_trans_eQTLS[i,1],".txt",sep=""))
