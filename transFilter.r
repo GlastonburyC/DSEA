@@ -1,3 +1,31 @@
+######### obtain DOSAGEs ###########
+######################################################################################################################
+
+import sys
+import glob
+# sys.argv[2] = dosage directory
+# sys.argv[1] = input file of trans associations
+dosage_files=glob.glob('/home/glastonc/FileMatrixQTL/FilesMatrixQTL/F/dosages/'+'*.matrix.maf5')
+
+eqtls={}
+with open('temp.transeQTL.txt','r') as f:
+   header=next(f)
+   for line in (line.strip().split() for line in f):
+      eqtls[line[1]]=line[0]
+
+snps=eqtls.values()
+
+with open('test.out.dosages','w') as output:
+   for x in dosage_files:
+      with open(x,'r') as results:
+         for line in (line.strip().split() for line in results):
+            if line[0] in snps:
+               output.write("\t".join(str(x) for x in line)+"\n")
+
+
+######################################################################################################################
+
+
 args <- commandArgs(trailingOnly = TRUE)
 
 library(data.table)
@@ -6,15 +34,20 @@ library(zoo)
 library(ggplot2)
 library(GenomicRanges)
 library(gtools)
+library(parallel)
 library(GenomicFeatures)
+
+no_cores <- detectCores() - 1
+cl <- makeCluster(no_cores)
 
 annotation.file  = "/home/glastonc/new_bams/gencode.v19.annotation.gtf" # args[1]
 # FDR5 significant trans
 trans_eQTL_file  = "/home/glastonc/new_bams/counts/eQTLs/trans.eQTLs.TMM.F.txt.sorted"  # args[2]
 SNP_file         = "/home/glastonc/test.out.dosages"
-quantified_genes = " "
-ENSEMBL_paralogs = "paralog_DB.txt"
-dir2BAMs         = "/home/glastonc/new_bams/"
+BAM.dir          = " "
+quantified_genes = "/home/glastonc/new_bams/counts/Adipose.genes.txt"
+ENSEMBL_paralogs = "/home/glastonc/paralog_DB.txt"
+dir2BAMs         = "/home/glastonc/new_bams/bams_with_genotypes/"
 dir2dosages      = "/home/glastonc/FileMatrixQTL/FilesMatrixQTL/F/dosages/"
 SNPlocation_file     = "/home/glastonc/FileMatrixQTL/FilesMatrixQTL/all_snps.txt"
 ####### load in files ########
@@ -32,27 +65,34 @@ ENSEMBL_paralogs <- as.data.frame(ENSEMBL_paralogs)
 
 dosages  		 <- read.table(SNP_file,head=F,sep="\t")
 
+expressed_genes  <- read.table(quantified_genes,head=T,sep="\t")
+
+
 # format gencode annotation as a GRange object - reduce to meta-exon structure.
 txdb                <- makeTxDbFromGFF("/home/glastonc/new_bams/gencode.v19.annotation.gtf"
 							           ,format="gtf")
+
 exons.list.per.gene <- exonsBy(txdb,by="gene")
-union_exons         <-lapply(exons.list.per.gene,function(x){reduce(x)})
+
+
+# replace with mclapply (parrelelise)
+union_exons         <-mclapply(exons.list.per.gene,function(x){reduce(x)},mc.cores=no_cores)
 
 cat("1) Processing Gencode annotation file..","\n")
 
 # obtain the gene name, ensembl ID and biotype as a seperate columns in the annotation table.
-gene.split <- lapply(gencode[,9],function(x)strsplit(x,";")[[1]][1])
+gene.split <- mclapply(gencode[,9],function(x)strsplit(x,";")[[1]][1],mc.cores=no_cores)
 
-geneN   <- as.data.frame(unlist(lapply(gene.split,
-	                     function(x)strsplit(x,"\"")[[1]][2])))
+geneN   <- as.data.frame(unlist(mclapply(gene.split,
+	                     function(x)strsplit(x,"\"")[[1]][2],mc.cores=no_cores)))
 
-biotype <- as.data.frame(unlist(lapply(gencode$V9,
+biotype <- as.data.frame(unlist(mclapply(gencode$V9,
 	                     function(x)strsplit(strsplit(x,";")[[1]][3],
-	                     	      "\"")[[1]][2])))
+	                     	      "\"")[[1]][2],mc.cores=no_cores)))
 
-gene_id <- as.data.frame(unlist(lapply(gencode$V9,
-			function(x)strsplit(strsplit(x,";")[[1]][5],
-			"\"")[[1]][2])))
+gene_id <- as.data.frame(unlist(mclapply(gencode$V9,
+						  function(x)strsplit(strsplit(x,";")[[1]][5],
+						  		   "\"")[[1]][2],mc.cores=no_cores)))
 
 
 colnames(biotype)[1]="biotype"
@@ -79,10 +119,10 @@ trans_eQTL$pseudo.gene=rep('-')
 trans_eQTL$pseudo.gene[which(trans_eQTL[,2] == pseudo.genes)] <- "psuedogene"
 
 gencode_pseudo         <- subset(gencode_genes,biotype =="pseudogene")
-total_pseudo           <- quantified_genes[quantified_genes[,1] %in% gencode[,1],]
+total_pseudo           <- expressed_genes[expressed_genes[,1] %in% gencode_pseudo[,2],]
 No_pseudotrans         <- length(which(trans_eQTL$pseudo.gene == "psuedogene"))
 trans_length           <- length(unique(trans_eQTL[,2]))
-No_of_genes_expressed  <- dim(quantified_genes)[1]
+No_of_genes_expressed  <- dim(expressed_genes)[1]
 
 # number of trans pseudo genes, total number of psuedo genes 
 # (should be background list psuedo genes) and total N trans genes)
@@ -94,12 +134,14 @@ enrich=1-phyper(No_pseudotrans,total_pseudo,
 	     No_of_genes_expressed-total_pseudo,
 	     trans_length)
 
-cat("Hypergeometric enrichment of pseudogenes P = ",
-	 enrich,"\n",sep="")
 
 cat("2) ",paste(length(which(trans_eQTL$pseudo.gene != '-')),
 	    " Psuedogenes detected in trans-eQTL results..",
 	    "\n","\n",sep=""))
+
+cat("Hypergeometric enrichment of pseudogenes P = ",
+	 signif(enrich,digits=3),"\n",sep="")
+
 
 # extract paralogous genes.
 ensemblParalogs <- function(i,gene_of_interest) {
@@ -130,6 +172,9 @@ cis_window_scan <- function(gencode_genes,trans_eQTL) {
 		cis_genes_idx    	      <- which(gencode_genes_tmp$V4 >= SNP_pos-5e6 & gencode_genes_tmp$V4 <= SNP_pos+5e6)
 		cis_genes        	      <- gencode_genes_tmp$gene[cis_genes_idx]
 		para_in_cis      	      <- cis_genes[substr(cis_genes,1,15) %in% para_genes]
+				if (gene_of_interest %in% substring(para_in_cis,1,15)){
+			para_in_cis=para_in_cis[-which(para_in_cis==gene_of_interest)]
+		}
 		para_in_cis_out        	  <- paste(para_in_cis, collapse=", ")
 		trans_eQTL$para_in_cis[i] <- para_in_cis_out
 		cat(paste(trans_eQTL[i,2]," has ",length(para_in_cis)," paralogues",sep=""),"\n")
@@ -140,25 +185,17 @@ return(trans_eQTL)
 annotated_trans_eQTLS <- cis_window_scan(gencode_genes,trans_eQTL)
 
 # Obtain BAM file names if they contain the sample ID.
-system("cd ~/new_bams; ls *.bam > bamIDs.txt;")
-bamIDs        <- read.table('~/new_bams/filelist.txt',head=F,stringsAsFactors=F)
-
-bamIDs        <- unlist(lapply(bamIDs$V1,function(x)strsplit(x,"_sorted")[[1]][1]))
-key.samples   <- read.table('/gpfs/home/DTR/Expression/EUROBATS/DataRelease/keySamples.F',head=T)
-
-sample_ids    <- key.samples[which(key.samples$IDbam %in% bamIDs),'SampleID']
-
-##### reduce exons to union exons so I can extract exons coordinates #####
-
-
-qc=read.table('~/../DTR/Expression/EUROBATS/Counts/qc_F_freezev1.txt',head=T)
+system(paste("cd ",dir2BAMs,";"," ls *.bam > bamIDs.txt;",sep=""))
+bamIDs        <- read.table('bamIDs.txt',head=F,stringsAsFactors=F)
+system("rm bamIDs.txt")
+bamIDs        <- unlist(lapply(bamIDs$V1,function(x)strsplit(x,".bam")))
 
 annotated_trans_eQTLS$coverage=rep(NA)
 
-read_coverage <- function(sampleIDs, dosages, dir2BAMs, annotated_trans_eQTLS, gencode_genes,union_exons,qc){
+read_coverage <- function(bamIDs,dosages, dir2BAMs, annotated_trans_eQTLS, gencode_genes,union_exons){
 
 
-pdf("trans_eQTL.coverage.pdf",width=15,height=5)
+pdf("trans_eQTL.coverage.test.pdf",width=15,height=5)
 
 for(i in 1:nrow(annotated_trans_eQTLS)){
 
@@ -178,7 +215,9 @@ for(i in 1:nrow(annotated_trans_eQTLS)){
 	nums          <- sapply(read.cov, is.numeric)
 	read.cov      <- read.cov[,nums]
 	# label columns with sample IDs
-	colnames(read.cov)[2:ncol(read.cov)] <- as.character(sample_ids)
+	colnames(read.cov)[2:ncol(read.cov)] <- as.character(bamIDs)
+	read.cov      <- read.cov[,mixedorder(names(read.cov))]
+	read.cov      <- read.cov[,c(ncol(read.cov),1:ncol(read.cov)-1)]
 	x             <- paste(annotated_trans_eQTLS[i,2],sep="")
 	# select gene from collapsed union exon representation
 	targetGene    <- union_exons[x]
@@ -186,26 +225,32 @@ for(i in 1:nrow(annotated_trans_eQTLS)){
 	bpCoverage    <- GRanges(Rle(paste(cord$V1,sep="")),IRanges(start=read.cov$V2,width=1))
 	targetGene    <- GRangesList(targetGene)
 	my_index      <- overlapsAny(bpCoverage, targetGene, ignore.strand=TRUE)
-	# keep only positoons that correspond to exons
-	exon.cov      <- read.cov[my_index,]
+	my_exon       <- findOverlaps(bpCoverage, unlist(targetGene),type = "within", select = "first", ignore.strand=TRUE)
+	# keep only positions that correspond to exons
+	# exon.cov      <- read.cov[my_index,]
+	exon.cov      <- read.cov[!is.na(my_exon),]
+	exon.cov$exon <- my_exon[!is.na(my_exon)]
+	exon.cov     <- exon.cov[,c(1,ncol(exon.cov),2:(ncol(exon.cov)-1))]
+    exon_member   <- exon.cov[,2]
+
 	# extract dosage for this trans-eQTL SNP
 	SNP           <- dosages[which(dosages$V1==annotated_trans_eQTLS[i,1]),2:ncol(dosages)]
 	SNP           <- round(SNP)
 	# order samples and subset to individuals with genotypes
-	exon.cov      <- exon.cov[,mixedorder(colnames(exon.cov))]
-	exon.cov      <- exon.cov[,c(767,1:766)]
-	bptmp         <- exon.cov[,1]
-	exon.cov      <- exon.cov[,colnames(exon.cov) %in% qc$SampleID]
-	exon.cov      <- cbind(bptmp,exon.cov)
-	colnames(SNP) <- colnames(exon.cov[,2:ncol(exon.cov)])
+	colnames(SNP) <- colnames(exon.cov[,3:ncol(exon.cov)])
+	# calculate the number of exon basepairs that have <= 1 read covering them.
 	bpwith1=length(which(rowMeans(exon.cov[1:nrow(exon.cov),2:ncol(exon.cov)]) <= 1))
-    gene_percent=(bpwith1/dim(exon.cov)[1])*100
+    gene_percent=(bpwith1/sum(width(targetGene)))*100
+    # Width of exons for percent coverage!!
     cat(paste(round(gene_percent,digits=3),"% of nucleotides from ",cord$gene_id
     	                                  ," exons have < 1 read coverage (mean)",sep=""),"\n")
 
     annotated_trans_eQTLS$coverage[i]=paste(signif((1-gene_percent/100)*100,digits=3),"%",sep="")
-    temp=rbind(rep(NA,720),exon.cov)
+    
+    # annotate individuals with their SNP dosage and stratify by genotype.
+    temp=rbind(rep(NA,ncol(exon.cov)),exon.cov)
     temp[1,2:ncol(temp)]=SNP
+    colnames(exon.cov)[1]="bptmp"
     #subset read coverage by genotype calculate the mean coverage per base pair
     AA=exon.cov[,which(temp[1,]=="0")]
     AA=rowMeans(AA)
@@ -217,16 +262,24 @@ for(i in 1:nrow(annotated_trans_eQTLS)){
     TT=rowMeans(TT)
     TT=rollapply(TT, width = 1, by =1, FUN = mean, align = "left")
 
-    # form a dataframe with each alleles mean coverage
+    # form a dataframe with each alleles coverage
     final<-data.frame(AA=AA,AT=AT,TT=TT,position=rollapply(exon.cov$bptmp, width = 1
-    	            , by = 1, FUN = mean, align = "left"))
-    colnames(final)=c('0','1','2','Position')
-    dt=melt(final,id.vars="Position")
-    colnames(dt)=c('Position','dosage','value')
-    print(ggplot(data=dt,aes(x=Position,y=value)) + geom_line(aes(colour=dosage),alpha=0.8,size=1) + 
-    						    xlab(paste(cord$gene_id,"basepair position",sep=" ")) +
-    						    ylab("Per nucleotide read coverage") +
-    					            ggtitle(paste(cord$gene_id,"Read coverage",sep=" ")))
+    	            , by = 1, FUN = mean, align = "left"),exon=exon_member)
+    colnames(final)=c('0','1','2','Position',"exon")
+    dt=melt(final,id.vars=c("Position","exon"))
+    colnames(dt)=c('Position','exon','dosage','value')
+    recs <- data.frame(xmin=start(targetGene), xmax=end(targetGene),ymin=0,ymax=(max(dt$value)+1))
+
+    print(ggplot() +
+	                geom_line(data=dt,aes(x=Position,y=value,colour=dosage,group=interaction(exon,dosage)),alpha=0.8,size=0.7) + 
+					xlab(paste(cord$gene_id,"basepair position",sep=" ")) +
+					ylab("Per nucleotide read coverage") +
+					ggtitle(paste(cord$gene_id,"Read coverage",sep=" ")) + 
+					theme_bw() + 
+					geom_rect(data=recs, aes(xmin=xmin.value, xmax=xmax.value, ymin=ymin, ymax=ymax),
+						fill='gray80', alpha=0.3))
+
+
 	#system(paste("cd ",dir2dosages,"; awk '$1==\"",annotated_trans_eQTLS[i,1],"\"' all.dosages.csv > ",annotated_trans_eQTLS[i,1],".txt",sep=""))
 	#SNP.file.name=paste(annotated_trans_eQTLS[i,1],".txt",sep="")
 	#SNP=read.table(SNP.file.name,head=F,sep="\t")
@@ -235,6 +288,8 @@ for(i in 1:nrow(annotated_trans_eQTLS)){
 dev.off()
 
 }
+
+read_coverage(bamIDs,dosages,dir2BAMs,annotated_trans_eQTLS,gencode_genes,union_exons)
 
 # mpileup function - obtain reads from BAMS for all possible trans genes
 # provide diagnostic read coverage plot per dodgy gene if Perplexity score 
