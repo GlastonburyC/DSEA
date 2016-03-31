@@ -15,7 +15,7 @@ cl <- makeCluster(no_cores)
 annotation.file  = "/home/glastonc/new_bams/gencode.v19.annotation.gtf" # args[1]
 # FDR5 significant trans
 trans_eQTL_file  = "/home/glastonc/new_bams/counts/eQTLs/trans.eQTLs.TMM.F.txt.sorted"  # args[2]
-SNP_file         = "/home/glastonc/test.out.dosages"
+SNP_file         = "/home/glastonc/new_bams/counts/eQTLs/FDR/cisDosages.txt"
 BAM.dir          = " "
 quantified_genes = "/home/glastonc/new_bams/counts/Adipose.genes.txt"
 ENSEMBL_paralogs = "/home/glastonc/paralog_DB.txt"
@@ -143,7 +143,7 @@ cis_window_scan <- function(gencode_genes,trans_eQTL) {
 		SNP_idx                   <- which(SNPlocations_tmp[,1]==trans_eQTL[i,1])
 		SNP_pos                   <- SNPlocations_tmp[,3][SNP_idx]
 		gencode_genes_tmp         <- subset(gencode_genes,V1 ==chr)
-		cis_genes_idx    	  <- which(gencode_genes_tmp$V4 >= SNP_pos-5e6 & gencode_genes_tmp$V4 <= SNP_pos+5e6)
+		cis_genes_idx    	  <- which(gencode_genes_tmp$V4 >= SNP_pos-1e6 & gencode_genes_tmp$V4 <= SNP_pos+1e6)
 		cis_genes        	  <- gencode_genes_tmp$gene[cis_genes_idx]
 		para_in_cis      	  <- cis_genes[substr(cis_genes,1,15) %in% para_genes]
 				if (gene_of_interest %in% substring(para_in_cis,1,15)){
@@ -160,16 +160,16 @@ annotated_trans_eQTLS <- cis_window_scan(gencode_genes,trans_eQTL)
 
 # Obtain BAM file names if they contain the sample ID.
 system(paste("cd ",dir2BAMs,";"," ls *.bam > bamIDs.txt;",sep=""))
-bamIDs        <- read.table('bamIDs.txt',head=F,stringsAsFactors=F)
-system("rm bamIDs.txt")
+bamIDs        <- read.table(paste(dir2BAMs,'bamIDs.txt',sep=''),head=F,stringsAsFactors=F)
+system(paste("rm ",paste(dir2BAMs,"bamIDs.txt",sep=""),sep=""))
 bamIDs        <- unlist(lapply(bamIDs$V1,function(x)strsplit(x,".bam")))
 
 annotated_trans_eQTLS$coverage=rep(NA)
 
-read_coverage <- function(bamIDs,dosages, dir2BAMs, annotated_trans_eQTLS, gencode_genes,union_exons){
-
-
 pdf("trans_eQTL.coverage.test.pdf",width=15,height=5)
+
+
+read_coverage <- function(bamIDs,dosages, dir2BAMs, annotated_trans_eQTLS, gencode_genes,union_exons){
 
 for(i in 1:nrow(annotated_trans_eQTLS)){
 
@@ -266,6 +266,10 @@ dev.off()
 
 read_coverage(bamIDs,dosages,dir2BAMs,annotated_trans_eQTLS,gencode_genes,union_exons)
 
+
+write.table(annotated_trans_eQTLS,"/home/glastonc/new_bams/counts/eQTLs/FDR/DSEA.cis.out.txt",col.names=T,row.names=F,sep="\t",quote=F)
 # mpileup function - obtain reads from BAMS for all possible trans genes
 # provide diagnostic read coverage plot per dodgy gene if Perplexity score 
+
+
 
