@@ -6,6 +6,8 @@ library(zoo)
 library(ggplot2)
 library(GenomicRanges)
 library(gtools)
+library(GenomicFeatures)
+
 annotation.file  = "/home/glastonc/new_bams/gencode.v19.annotation.gtf" # args[1]
 # FDR5 significant trans
 trans_eQTL_file  = "/home/glastonc/new_bams/counts/eQTLs/trans.eQTLs.TMM.F.txt.sorted"  # args[2]
