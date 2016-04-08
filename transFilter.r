@@ -12,16 +12,16 @@ library(GenomicFeatures)
 no_cores <- detectCores() - 1
 cl <- makeCluster(no_cores)
 
-annotation.file  = "/home/glastonc/new_bams/gencode.v19.annotation.gtf" # args[1]
+annotation.file  = "gencode.v19.annotation.gtf" # args[1]
 # FDR5 significant trans
-trans_eQTL_file  = "/home/glastonc/new_bams/counts/eQTLs/trans.eQTLs.TMM.F.txt.sorted"  # args[2]
-SNP_file         = "/home/glastonc/new_bams/counts/eQTLs/FDR/cisDosages.txt"
-BAM.dir          = " "
+trans_eQTL_file  = "all.FDR.pval0.05.eQTLs.TMM.txt"  # args[2]
+SNP_file         = "cisDosages.txt"
+BAM.dir          = "/home/craig/Desktop/BAMs/"
 quantified_genes = "/home/glastonc/new_bams/counts/Adipose.genes.txt"
-ENSEMBL_paralogs = "/home/glastonc/paralog_DB.txt"
-dir2BAMs         = "/home/glastonc/new_bams/bams_with_genotypes/"
-dir2dosages      = "/home/glastonc/FileMatrixQTL/FilesMatrixQTL/F/dosages/"
-SNPlocation_file = "/home/glastonc/FileMatrixQTL/FilesMatrixQTL/all_snps.txt"
+ENSEMBL_paralogs = "paralog_DB.txt"
+dir2BAMs         = "/home/craig/Desktop/BAMs/"
+dir2dosages      = "/home/craig/Desktop/BAMs"
+SNPlocation_file = "all_snps.txt"
 ####### load in files ########
 trans_eQTL       <- fread(trans_eQTL_file,head=T,sep="\t")
 trans_eQTL       <- as.data.frame(trans_eQTL)
@@ -37,11 +37,11 @@ ENSEMBL_paralogs <- as.data.frame(ENSEMBL_paralogs)
 
 dosages   	 <- read.table(SNP_file,head=F,sep="\t")
 
-expressed_genes  <- read.table(quantified_genes,head=T,sep="\t")
+#expressed_genes  <- read.table(quantified_genes,head=T,sep="\t")
 
 
 # format gencode annotation as a GRange object - reduce to meta-exon structure.
-txdb                <- makeTxDbFromGFF("/home/glastonc/new_bams/gencode.v19.annotation.gtf"
+txdb                <- makeTxDbFromGFF("gencode.v19.annotation.gtf"
 				      ,format="gtf")
 
 exons.list.per.gene <- exonsBy(txdb,by="gene")
@@ -166,13 +166,14 @@ bamIDs        <- unlist(lapply(bamIDs$V1,function(x)strsplit(x,".bam")))
 
 annotated_trans_eQTLS$coverage=rep(NA)
 
-pdf("trans_eQTL.coverage.test.pdf",width=15,height=5)
+pdf("cis_eQTL.coverage.test.pdf",width=15,height=5)
 
 
 read_coverage <- function(bamIDs,dosages, dir2BAMs, annotated_trans_eQTLS, gencode_genes,union_exons){
 
 for(i in 1:nrow(annotated_trans_eQTLS)){
 
+	if(annotated_trans_eQTLS$para_in_cis[i] != ""){
 	# format to mpileup co-ordinates (chrX:pos1-pos2)
 	cord       <- gencode_genes[which(gencode_genes[,2]==annotated_trans_eQTLS[i,2]),c(1,4,7,8)]
 	cord_form  <- paste(cord[,2],":",cord[,3],"-",cord[,4],sep="")
@@ -180,12 +181,11 @@ for(i in 1:nrow(annotated_trans_eQTLS)){
 	cat("Extracting reads covering gene position ",
 	     cord_form," corresponding to gene: ", as.character(cord$gene_id),"\n",sep="")
 	
-	system(paste("module load samtools; cd ",dir2BAMs,"; samtools mpileup -r "
-		   ,cord_form," *.bam > "
-		   ,cord[1,1],".pileup.txt",sep=""))
+	system(paste("samtools mpileup -B -r ",cord_form," *.bam > ",cord[1,1],".pileup.txt",sep=""))
 
 	file.name     <- paste(dir2BAMs,cord[1,1],".pileup.txt",sep="")
 	read.cov      <- fread(file.name,head=F,sep="\t")
+	system(paste('rm ',file.name,sep=""))
 	read.cov      <- as.data.frame(read.cov)
 	# remove unwanted data from mpileup output
 	nums          <- sapply(read.cov, is.numeric)
@@ -228,6 +228,10 @@ for(i in 1:nrow(annotated_trans_eQTLS)){
     temp[1,2:ncol(temp)]=SNP
     colnames(exon.cov)[1]="bptmp"
     #subset read coverage by genotype calculate the mean coverage per base pair
+    if (length(which(temp[1,]=="0")) < 5){next}
+    if (length(which(temp[1,]=="1")) < 5){next}
+    if (length(which(temp[1,]=="2")) < 5){next}
+
     AA=exon.cov[,which(temp[1,]=="0")]
     AA=rowMeans(AA)
     AA=rollapply(AA, width = 1, by =1, FUN = mean, align = "left")
@@ -259,17 +263,18 @@ for(i in 1:nrow(annotated_trans_eQTLS)){
 	#SNP.file.name=paste(annotated_trans_eQTLS[i,1],".txt",sep="")
 	#SNP=read.table(SNP.file.name,head=F,sep="\t")
 
+} else{
+	next
 }
+}
+return(annotated_trans_eQTLS)
 dev.off()
-
 }
 
-read_coverage(bamIDs,dosages,dir2BAMs,annotated_trans_eQTLS,gencode_genes,union_exons)
+results_out=read_coverage(bamIDs,dosages,dir2BAMs,annotated_trans_eQTLS,gencode_genes,union_exons)
 
 
-write.table(annotated_trans_eQTLS,"/home/glastonc/new_bams/counts/eQTLs/FDR/DSEA.cis.out.txt",col.names=T,row.names=F,sep="\t",quote=F)
+write.table(results_out,"DSEA.cis.out.txt",col.names=T,row.names=F,sep="\t",quote=F)
 # mpileup function - obtain reads from BAMS for all possible trans genes
 # provide diagnostic read coverage plot per dodgy gene if Perplexity score 
-
-
 
