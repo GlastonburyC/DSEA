@@ -16,8 +16,8 @@ annotation.file  = "gencode.v19.annotation.gtf" # args[1]
 # FDR5 significant trans
 trans_eQTL_file  = "all.FDR.pval0.05.eQTLs.TMM.txt"  # args[2]
 SNP_file         = "cisDosages.txt"
-BAM.dir          = "/home/craig/Desktop/BAMs/"
-quantified_genes = "/home/glastonc/new_bams/counts/Adipose.genes.txt"
+BAM.dir          = "/BAMs/"
+quantified_genes = "/genes.present.txt"
 ENSEMBL_paralogs = "paralog_DB.txt"
 dir2BAMs         = "/home/craig/Desktop/BAMs/"
 dir2dosages      = "/home/craig/Desktop/BAMs"
